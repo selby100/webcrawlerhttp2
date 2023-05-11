@@ -1,33 +1,55 @@
+//const { fetch } = require('node-fetch')
 const { JSDOM } = require('jsdom')
 
+async function crawlPage(currentURL) {
+    console.log(`actively crawling: ${currentURL}`)
+    try {
+        const resp = await fetch(currentURL)
+        if (resp.status > 300)
+        {
+            console.log(`error in fetch with status code: ${resp.status} on page: ${currentURL}`)
+            return
+        }
 
-function getURLsFromHTML(htmlBody, baseURL)
-{
+        const contentType = resp.headers.get("content-type")
+        if (contentType.includes( "text/html")) {
+            console.log(`non html response, content type: ${resp.status} on page: ${currentURL}`)
+            return
+        }
+
+
+
+
+        console.log(await resp.text())
+    }
+    catch (err) {
+        console.log(`error in fetch: ${err.message}, on page: ${baseURL}`)
+    }
+}
+
+function getURLsFromHTML(htmlBody, baseURL) {
     const urls = []
     const dom = new JSDOM(htmlBody)
     const linkElements = dom.window.document.querySelectorAll('a')
     for (const aElement of linkElements){
         if (aElement.href.slice(0,1) === '/'){
-          try {
-            urls.push(new URL(aElement.href, baseURL).href)
-          } catch (err){
-            console.log(`${err.message}: ${aElement.href}`)
-          }
-        } else {
-          try {
-            urls.push(new URL(aElement.href).href)
-          } catch (err){
-            console.log(`${err.message}: ${aElement.href}`)
-          }
+            try {
+                urls.push(new URL(aElement.href, baseURL).href)
+            } catch (err){
+                console.log(`${err.message}: ${aElement.href}`)
+            }
+            } else {
+            try {
+                urls.push(new URL(aElement.href).href)
+            } catch (err){
+                console.log(`${err.message}: ${aElement.href}`)
+            }
         }
-      }
-      return urls
-    
+    }
     return urls
 }
 
-function normalizeURL(urlString)
-{
+function normalizeURL(urlString) {
     const urlObj = new URL(urlString)
     const hostPath = `${urlObj.hostname}${urlObj.pathname}`
     if (hostPath.length >0 && hostPath.slice(-1) === '/')
@@ -40,6 +62,7 @@ function normalizeURL(urlString)
 module.exports = {
     normalizeURL
     ,getURLsFromHTML
+    ,crawlPage
 }
 
 
