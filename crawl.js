@@ -1,26 +1,31 @@
 const { JSDOM } = require('jsdom')
 
-async function crawlPage(baseURL, currentURL, pages) {
+async function  crawlPage(baseURL, currentURL, pages) {
 
     const baseURLObj = new URL(baseURL)
     const currentURLObj = new URL(currentURL)
 
+    // return if the host is different
     if (baseURLObj.hostname !== currentURLObj.hostname) {
         return pages
     }
 
+    // just get the hostname and the path, lose everything else    
     const normalizedCurrentURL = normalizeURL(currentURL)
+
     // if already seen this pages, increment its count and return
     if (pages[normalizedCurrentURL] > 0) {
         pages[normalizedCurrentURL]++
         return pages
     }
 
+    // ...otherwise set it to 1
     pages[normalizedCurrentURL] = 1
 
     console.log(`actively crawling: ${currentURL}`)
 
     try {
+        // get the page
         const resp = await fetch(currentURL)
         if (resp.status > 300)
         {
@@ -28,14 +33,18 @@ async function crawlPage(baseURL, currentURL, pages) {
             return pages
         }
 
+        // return if it doesn't have text/html in the header
         const contentType = resp.headers.get("content-type")
-        if (contentType.includes( "text/html")) {
+        if (!contentType.includes( "text/html")) {
             console.log(`non html response, content type: ${resp.status} on page: ${currentURL}`)
             return pages
         }
 
+        // get the body text
         const htmlBody = await resp.text()
+        // find all the <a> tags
         const nextURLs = getURLsFromHTML(htmlBody, baseURL)
+        // ...and call this function with each of them
         for (const nextURL of nextURLs) {
             pages = await crawlPage(baseURL, nextURL, pages)
         }
@@ -70,12 +79,16 @@ function getURLsFromHTML(htmlBody, baseURL) {
 }
 
 function normalizeURL(urlString) {
+    
+    // get the URL standardized to be just the host and the path (no protocol or parameters etc)
     const urlObj = new URL(urlString)
     const hostPath = `${urlObj.hostname}${urlObj.pathname}`
+    
     if (hostPath.length >0 && hostPath.slice(-1) === '/')
     {
         return hostPath.slice(0, -1)
     }
+    
     return hostPath
 }
 
