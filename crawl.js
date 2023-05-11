@@ -13,7 +13,7 @@ async function  crawlPage(baseURL, currentURL, pages) {
     // just get the hostname and the path, lose everything else    
     const normalizedCurrentURL = normalizeURL(currentURL)
 
-    // if already seen this pages, increment its count and return
+    // if already seen this page, increment its count and return
     if (pages[normalizedCurrentURL] > 0) {
         pages[normalizedCurrentURL]++
         return pages
