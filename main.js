@@ -3,7 +3,7 @@ const { printReport } = require ('./report.js')
 
 async function main()
 {
-    // exit if args are not valid
+    // exit if args are not valid (etc)
     if (process.argv.length < 3) {
         console.log("no website provided")
         process.exit()
